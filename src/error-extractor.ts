@@ -24,9 +24,28 @@ function stripTimestamp(line: string): string {
   return line.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s*/gm, '');
 }
 
-/** Clean a single line: strip ANSI + timestamps */
+/**
+ * Parse a line from `gh run view --log-failed`.
+ * The format is: "<job>\t<step>\t<timestamp> <content>"
+ * Returns { job, step, content } if parseable, otherwise { content: original line }.
+ */
+export function parseGhLogLine(line: string): { job: string; step: string; content: string } {
+  const parts = line.split('\t');
+  if (parts.length >= 3) {
+    const job = parts[0].trim();
+    const step = parts[1].trim();
+    // remainder after the two tabs, strip leading timestamp
+    const raw = parts.slice(2).join('\t');
+    const content = stripTimestamp(stripAnsi(raw)).trim();
+    return { job, step, content };
+  }
+  // Not a gh log line - treat as plain content
+  return { job: '', step: '', content: stripTimestamp(stripAnsi(line)).trim() };
+}
+
+/** Clean a single line: parse gh format, then strip ANSI + timestamps */
 function cleanLine(line: string): string {
-  return stripTimestamp(stripAnsi(line));
+  return parseGhLogLine(line).content;
 }
 
 /**
@@ -71,7 +90,8 @@ export function extractFilePaths(lines: string[]): string[] {
  */
 function extractContext(
   lines: string[],
-  errorIndices: number[]
+  errorIndices: number[],
+  parsedMeta?: Array<{ job: string; step: string; content: string }>
 ): {
   stepName: string;
   errorLines: string[];
@@ -84,15 +104,28 @@ function extractContext(
   // Focus on the last error — most likely the root cause
   const lastErrorIdx = errorIndices[errorIndices.length - 1];
 
-  // Scan backwards from last error to find nearest ##[group]
-  let groupIdx = -1;
+  // Try to get step name from gh log metadata first (tab-separated format)
   let stepName = '(unknown)';
-  for (let i = lastErrorIdx; i >= 0; i--) {
-    const groupMatch = lines[i].match(/^##\[group\](.+)/i);
-    if (groupMatch) {
-      groupIdx = i;
-      stepName = groupMatch[1].trim();
-      break;
+  if (parsedMeta) {
+    // Find the step name from the error line or nearest preceding line with a step
+    for (let i = lastErrorIdx; i >= 0; i--) {
+      if (parsedMeta[i]?.step) {
+        stepName = parsedMeta[i].step;
+        break;
+      }
+    }
+  }
+
+  // Fallback: scan backwards for ##[group] marker
+  let groupIdx = -1;
+  if (stepName === '(unknown)') {
+    for (let i = lastErrorIdx; i >= 0; i--) {
+      const groupMatch = lines[i].match(/^##\[group\](.+)/i);
+      if (groupMatch) {
+        groupIdx = i;
+        stepName = groupMatch[1].trim();
+        break;
+      }
     }
   }
 
@@ -159,7 +192,10 @@ export function extractErrors(rawLog: string): ExtractedError {
   }
 
   const rawLines = rawLog.split('\n');
-  const lines = rawLines.map(cleanLine);
+
+  // Pre-parse gh log format to extract step names per line
+  const parsed = rawLines.map(parseGhLogLine);
+  const lines = parsed.map((p) => p.content);
 
   // --- Primary: ##[error] markers ---
   const markerErrorIndices: number[] = [];
@@ -170,7 +206,7 @@ export function extractErrors(rawLog: string): ExtractedError {
   }
 
   if (markerErrorIndices.length > 0) {
-    const result = extractContext(lines, markerErrorIndices);
+    const result = extractContext(lines, markerErrorIndices, parsed);
     return {
       stepName: result.stepName,
       errorLines: result.errorLines,
@@ -189,7 +225,7 @@ export function extractErrors(rawLog: string): ExtractedError {
   }
 
   if (extendedErrorIndices.length > 0) {
-    const result = extractContext(lines, extendedErrorIndices);
+    const result = extractContext(lines, extendedErrorIndices, parsed);
     return {
       stepName: result.stepName,
       errorLines: result.errorLines,
