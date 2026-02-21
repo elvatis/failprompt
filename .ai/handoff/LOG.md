@@ -459,3 +459,25 @@ Winner: **commander**
 npm publish - requires `npm login` from Emre (browser 2FA)
 
 ---
+
+## [AKIDO] npm publish + Blog update: 2026-02-21
+
+**Agent:** Akido (main session)
+
+### What was done
+
+**npm published:**
+- Package: `failprompt@0.1.0`
+- Registry: npmjs.com/package/failprompt
+- Published by: elvatis_com
+- `npx failprompt --version` verified working from any directory
+
+**Blog article updated (blog.elvatis.com):**
+- Section 8.2 updated: "from blank repository to published npm package"
+- Added `npx failprompt` usage and E2E test description
+- Added link to npmjs.com/package/failprompt
+
+### Project status
+Complete. All open tasks resolved. Next: GitLab CI support (Phase 2, deferred).
+
+---

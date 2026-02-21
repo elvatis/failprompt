@@ -5,22 +5,7 @@
 
 ---
 
-## 1. npm publish (requires human action)
-
-**Goal:** Make `failprompt` available via `npx failprompt` globally.
-
-**What needs to happen:**
-1. Emre runs `npm login` in a terminal (browser 2FA for npmjs.com)
-2. Agent runs: `npm version patch && npm run build && npm publish --access public`
-3. Verify: `npx failprompt --version` works from any directory
-
-**Notes:**
-- `package.json` already has: `bin`, `files` whitelist, `prepublishOnly: "npm run build"`, `publishConfig: { access: "public" }`
-- No other prep needed - ship as is
-
----
-
-## 2. GitLab CI support (Phase 2, after npm publish)
+## 1. GitLab CI support (Phase 2)
 
 **Goal:** Support GitLab pipelines in addition to GitHub Actions.
 
@@ -50,3 +35,5 @@ clean and type-safe. Nice to have for contribution hygiene.
 | Integration tests | 3 scenarios: TypeScript error, npm ERR!, Jest failure - all passing |
 | GitHub Actions CI | `.github/workflows/ci.yml` live - runs on every push |
 | Real E2E test | Tested against own failing CI run (22257459273) - output validated |
+| npm publish | v0.1.0 live on npmjs.com/package/failprompt - npx failprompt works globally |
+| Blog update | blog.elvatis.com AAHP article section 8.2 updated with npm link + E2E test description |

@@ -11,7 +11,7 @@
 | `tsc`         | ✅     | Clean, zero errors, strict mode          |
 | `npm test`    | ✅     | 42/42 tests (3 suites)                   |
 | GitHub CI     | ✅     | `.github/workflows/ci.yml` live on main  |
-| npm publish   | ⏳     | Ready, waiting on `npm login`            |
+| npm publish   | ✅     | Live: npmjs.com/package/failprompt v0.1.0 |
 
 ---
 
@@ -50,11 +50,10 @@
 
 ## Open Tasks
 
-| # | Task            | Priority | Blocked by       | Ready?       |
-| - | --------------- | -------- | ---------------- | ------------ |
-| 1 | npm publish     | HIGH     | `npm login`      | Human action |
-| 2 | GitLab CI       | LOW      | After publish    | Deferred     |
-| 3 | ESLint setup    | LOW      | -                | Optional     |
+| # | Task            | Priority | Blocked by    | Ready?   |
+| - | --------------- | -------- | ------------- | -------- |
+| 1 | GitLab CI       | LOW      | After publish | Deferred |
+| 2 | ESLint setup    | LOW      | -             | Optional |
 
 ---
 
@@ -70,3 +69,5 @@
 | 3 integration test scenarios      | Akido            | 2026-02-21 |
 | GitHub Actions CI workflow        | Akido            | 2026-02-21 |
 | Real end-to-end test (own CI)     | Akido            | 2026-02-21 |
+| npm publish v0.1.0                | Emre + Akido     | 2026-02-21 |
+| AAHP blog article updated         | Akido            | 2026-02-21 |

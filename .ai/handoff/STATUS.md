@@ -10,7 +10,7 @@
 | `tsc`        | ✅ Clean  | Strict mode, NodeNext, zero errors           |
 | `npm test`   | ✅ 42/42  | 3 suites: extractor, prompt-builder, integration |
 | GitHub CI    | ✅ Live   | `.github/workflows/ci.yml` on main           |
-| npm publish  | ⏳ Pending | Needs `npm login` (human action)             |
+| npm publish  | ✅ Live    | npmjs.com/package/failprompt - v0.1.0        |
 
 ## What Exists
 
@@ -41,7 +41,7 @@ The tool was tested against a real GitHub Actions failure in its own repo (run `
 
 | Gap             | Severity | Notes                          |
 | --------------- | -------- | ------------------------------ |
-| npm publish     | MEDIUM   | Needs `npm login` from Emre    |
+| GitLab CI       | LOW      | Phase 2, after npm publish     |
 | GitLab CI       | LOW      | Phase 2, after npm publish     |
 | ESLint          | LOW      | Optional, nice to have         |
 
