@@ -39,3 +39,4 @@ coverage/
 *.key
 *.crt
 *.p12
+package-lock.json
