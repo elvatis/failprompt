@@ -11,7 +11,7 @@
     "duration_minutes": 10,
     "session_id": "gitlab-ci-t001",
     "phase": "maintenance",
-    "commit": "",
+    "commit": "63595e4",
     "timestamp": "2026-02-27T14:00:00.000Z"
   },
   "tasks": {
