@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "lint": "eslint src/",
     "prepublishOnly": "npm run build && npm test"
   },
