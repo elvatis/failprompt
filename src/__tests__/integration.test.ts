@@ -169,3 +169,121 @@ describe('scenario 3: Jest test failure', () => {
     expect(prompt).toContain('Received: 200');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Scenario 4: GitLab CI build failure (realistic gitlab-ci.yml log)
+// ---------------------------------------------------------------------------
+const GITLAB_BUILD_LOG = [
+  '\x1b[0Ksection_start:1700000001:prepare_executor\r\x1b[0K\x1b[0;33mPreparing the "docker" executor\x1b[0;m',
+  'Using Docker executor with image node:20-alpine...',
+  '\x1b[0Ksection_end:1700000002:prepare_executor\r\x1b[0K',
+  '\x1b[0Ksection_start:1700000003:get_sources\r\x1b[0K\x1b[0;33mGetting source from Git repository\x1b[0;m',
+  'Fetching changes with git depth set to 50...',
+  '\x1b[0Ksection_end:1700000004:get_sources\r\x1b[0K',
+  '\x1b[0Ksection_start:1700000005:build_script\r\x1b[0K\x1b[0;33mExecuting "step_script" stage\x1b[0;m',
+  '\x1b[32;1m$ npm ci\x1b[0;m',
+  'added 142 packages in 4s',
+  '\x1b[32;1m$ npm run build\x1b[0;m',
+  '> myapp@1.0.0 build',
+  '> tsc',
+  'src/api/handler.ts(15,3): error TS2322: Type \'string\' is not assignable to type \'number\'.',
+  'src/api/handler.ts(28,10): error TS2345: Argument of type \'undefined\' is not assignable.',
+  'Found 2 errors in src/api/handler.ts.',
+  'ERROR: Job failed: exit code 2',
+  '\x1b[0Ksection_end:1700000006:build_script\r\x1b[0K',
+].join('\n');
+
+// ---------------------------------------------------------------------------
+// Scenario 5: GitLab CI test failure (Jest via gitlab-ci.yml)
+// ---------------------------------------------------------------------------
+const GITLAB_TEST_LOG = [
+  '\x1b[0Ksection_start:1700000001:build_script\r\x1b[0K\x1b[32;1m$ npm test\x1b[0;m',
+  'PASS src/__tests__/utils.test.ts',
+  'FAIL src/__tests__/auth.test.ts',
+  '  \x1b[31m\x1b[1m● auth > login > rejects invalid token\x1b[22m\x1b[39m',
+  '    expect(received).toThrow()',
+  '',
+  '    Expected: to throw',
+  '    Received: function did not throw',
+  '',
+  '      at src/__tests__/auth.test.ts:42:5',
+  'Tests: 1 failed, 8 passed, 9 total',
+  'ERROR: Job failed: exit code 1',
+  '\x1b[0Ksection_end:1700000002:build_script\r\x1b[0K',
+].join('\n');
+
+// ---------------------------------------------------------------------------
+// Scenario 4 tests: GitLab CI build failure
+// ---------------------------------------------------------------------------
+describe('scenario 4: GitLab CI build failure', () => {
+  it('identifies the failing section as build_script', () => {
+    const result = extractErrors(GITLAB_BUILD_LOG, 'gitlab');
+    expect(result.stepName).toBe('build_script');
+  });
+
+  it('strips ANSI and section markers from error lines', () => {
+    const result = extractErrors(GITLAB_BUILD_LOG, 'gitlab');
+    const hasAnsi = result.errorLines.some((l) => /\x1b\[/.test(l));
+    expect(hasAnsi).toBe(false);
+    const hasSectionMarker = result.errorLines.some((l) => l.includes('section_start'));
+    expect(hasSectionMarker).toBe(false);
+  });
+
+  it('captures TypeScript error codes from GitLab log', () => {
+    const result = extractErrors(GITLAB_BUILD_LOG, 'gitlab');
+    expect(result.errorLines.some((l) => l.includes('TS2322'))).toBe(true);
+  });
+
+  it('extracts file paths from GitLab error output', () => {
+    const result = extractErrors(GITLAB_BUILD_LOG, 'gitlab');
+    expect(result.filePaths.some((p) => p.includes('src/'))).toBe(true);
+  });
+
+  it('builds a complete prompt from GitLab CI log', () => {
+    const error = extractErrors(GITLAB_BUILD_LOG, 'gitlab');
+    const prompt = buildPrompt({
+      repo: 'myorg/myapp',
+      branch: 'feat/api',
+      runId: '55555',
+      includeContext: false,
+      error,
+    });
+    expect(prompt).toContain('## CI Failure');
+    expect(prompt).toContain('build_script');
+    expect(prompt).toContain('TS2322');
+    expect(prompt).toContain('### Task');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Scenario 5 tests: GitLab CI test failure
+// ---------------------------------------------------------------------------
+describe('scenario 5: GitLab CI test failure', () => {
+  it('identifies the failing section', () => {
+    const result = extractErrors(GITLAB_TEST_LOG, 'gitlab');
+    expect(result.stepName).toBe('build_script');
+  });
+
+  it('captures the assertion failure details', () => {
+    const result = extractErrors(GITLAB_TEST_LOG, 'gitlab');
+    expect(result.errorLines.some((l) => l.includes('function did not throw'))).toBe(true);
+  });
+
+  it('extracts file path from test stack trace', () => {
+    const result = extractErrors(GITLAB_TEST_LOG, 'gitlab');
+    expect(result.filePaths.some((p) => p.includes('src/'))).toBe(true);
+  });
+
+  it('full prompt includes expected vs received from GitLab log', () => {
+    const error = extractErrors(GITLAB_TEST_LOG, 'gitlab');
+    const prompt = buildPrompt({
+      repo: 'myorg/myapp',
+      branch: 'fix/auth',
+      runId: '66666',
+      includeContext: false,
+      error,
+    });
+    expect(prompt).toContain('function did not throw');
+    expect(prompt).toContain('Fix the error above');
+  });
+});

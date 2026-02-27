@@ -1,4 +1,4 @@
-import { extractErrors, extractFilePaths } from '../error-extractor.js';
+import { extractErrors, extractFilePaths, normalizeGitLabLog } from '../error-extractor.js';
 
 // ---------------------------------------------------------------------------
 // Fixture logs
@@ -246,5 +246,127 @@ describe('Extended error detection', () => {
     expect(result.allErrors.some((e) => e.includes('node-22'))).toBe(true);
     // Context should focus on the last error (node-22)
     expect(result.stepName).toBe('Run tests (node-22)');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GitLab CI log format tests
+// ---------------------------------------------------------------------------
+
+const GITLAB_SIMPLE_LOG = [
+  '\x1b[0Ksection_start:1700000001:build_script\r\x1b[0K\x1b[32;1m$ npm run build\x1b[0;m',
+  'src/index.ts(10,5): error TS2345: Argument of type \'string\' is not assignable.',
+  'ERROR: Job failed: exit code 1',
+  '\x1b[0Ksection_end:1700000002:build_script\r\x1b[0K',
+].join('\n');
+
+const GITLAB_MULTI_SECTION_LOG = [
+  '\x1b[0Ksection_start:1700000001:prepare_executor\r\x1b[0KPreparing the "docker" executor',
+  'Using Docker executor...',
+  '\x1b[0Ksection_end:1700000002:prepare_executor\r\x1b[0K',
+  '\x1b[0Ksection_start:1700000003:build_script\r\x1b[0K\x1b[32;1m$ npm test\x1b[0;m',
+  'FAIL src/app.test.ts',
+  '  Expected: 200',
+  '  Received: 500',
+  'ERROR: Job failed: exit code 1',
+  '\x1b[0Ksection_end:1700000004:build_script\r\x1b[0K',
+].join('\n');
+
+const GITLAB_NPM_ERROR_LOG = [
+  '\x1b[0Ksection_start:1700000001:build_script\r\x1b[0K$ npm install',
+  'npm ERR! code ENOENT',
+  'npm ERR! syscall open',
+  'npm ERR! path /builds/myorg/myapp/package.json',
+  '\x1b[0Ksection_end:1700000002:build_script\r\x1b[0K',
+].join('\n');
+
+const GITLAB_NO_SECTIONS_LOG = [
+  '\x1b[32;1m$ npm run build\x1b[0;m',
+  'Building...',
+  'Error: Cannot find module \'react\'',
+  'ERROR: Job failed: exit code 1',
+].join('\n');
+
+describe('normalizeGitLabLog', () => {
+  test('18. Converts section_start to ##[group]', () => {
+    const normalized = normalizeGitLabLog(GITLAB_SIMPLE_LOG);
+    expect(normalized).toContain('##[group]build_script');
+    expect(normalized).not.toContain('section_start');
+  });
+
+  test('19. Converts section_end to ##[endgroup]', () => {
+    const normalized = normalizeGitLabLog(GITLAB_SIMPLE_LOG);
+    expect(normalized).toContain('##[endgroup]');
+    expect(normalized).not.toContain('section_end');
+  });
+
+  test('20. Converts ERROR: Job failed to ##[error]', () => {
+    const normalized = normalizeGitLabLog(GITLAB_SIMPLE_LOG);
+    expect(normalized).toContain('##[error]ERROR: Job failed');
+  });
+
+  test('21. Strips ANSI escape codes', () => {
+    const normalized = normalizeGitLabLog(GITLAB_SIMPLE_LOG);
+    expect(normalized).not.toMatch(/\x1b\[/);
+  });
+
+  test('22. Strips carriage returns', () => {
+    const normalized = normalizeGitLabLog(GITLAB_SIMPLE_LOG);
+    expect(normalized).not.toContain('\r');
+  });
+});
+
+describe('GitLab CI error extraction', () => {
+  test('23. Extracts step name from GitLab section marker', () => {
+    const result = extractErrors(GITLAB_SIMPLE_LOG, 'gitlab');
+    expect(result.stepName).toBe('build_script');
+  });
+
+  test('24. Detects ERROR: Job failed as a ##[error] line', () => {
+    const result = extractErrors(GITLAB_SIMPLE_LOG, 'gitlab');
+    expect(result.allErrors.length).toBeGreaterThan(0);
+    expect(result.allErrors.some((e) => e.includes('Job failed'))).toBe(true);
+  });
+
+  test('25. Captures TypeScript error from GitLab build log', () => {
+    const result = extractErrors(GITLAB_SIMPLE_LOG, 'gitlab');
+    expect(result.fullContext).toContain('TS2345');
+  });
+
+  test('26. Handles multi-section GitLab log - focuses on failing section', () => {
+    const result = extractErrors(GITLAB_MULTI_SECTION_LOG, 'gitlab');
+    expect(result.stepName).toBe('build_script');
+    expect(result.fullContext).toContain('FAIL');
+  });
+
+  test('27. Captures npm ERR! from GitLab log', () => {
+    const result = extractErrors(GITLAB_NPM_ERROR_LOG, 'gitlab');
+    expect(result.fullContext).toContain('npm ERR!');
+  });
+
+  test('28. Auto-detects GitLab provider from log content', () => {
+    // Use 'auto' (default) - should detect GitLab from section markers
+    const result = extractErrors(GITLAB_SIMPLE_LOG);
+    expect(result.stepName).toBe('build_script');
+    expect(result.allErrors.some((e) => e.includes('Job failed'))).toBe(true);
+  });
+
+  test('29. Handles GitLab log without section markers', () => {
+    const result = extractErrors(GITLAB_NO_SECTIONS_LOG, 'gitlab');
+    // Should still find errors via heuristics
+    expect(result.errorLines.length).toBeGreaterThan(0);
+    expect(result.fullContext).toContain('Cannot find module');
+  });
+
+  test('30. Strips ANSI from GitLab error output', () => {
+    const result = extractErrors(GITLAB_MULTI_SECTION_LOG, 'gitlab');
+    for (const line of result.errorLines) {
+      expect(line).not.toMatch(/\x1b\[/);
+    }
+  });
+
+  test('31. Extracts file paths from GitLab error lines', () => {
+    const result = extractErrors(GITLAB_MULTI_SECTION_LOG, 'gitlab');
+    expect(result.filePaths.some((p) => p.includes('src/'))).toBe(true);
   });
 });

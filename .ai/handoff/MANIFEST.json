@@ -5,30 +5,31 @@
     "manifest_only": 100
   },
   "project": "failprompt",
-  "quick_context": "failprompt v0.1.0 published on npm. 42/42 tests passing. GitHub Actions CI live. ESLint strict type-checked config added. 1 optional enhancement task remaining.",
+  "quick_context": "failprompt v0.1.0 published on npm. 75/75 tests passing. GitHub Actions + GitLab CI support. ESLint strict type-checked config. All tasks complete.",
   "last_session": {
-    "agent": "Claude Opus 4.6",
+    "agent": "claude-code",
     "duration_minutes": 10,
-    "session_id": "eslint-setup-t002",
+    "session_id": "gitlab-ci-t001",
     "phase": "maintenance",
-    "commit": "49276f6",
-    "timestamp": "2026-02-27T12:00:00Z"
+    "commit": "",
+    "timestamp": "2026-02-27T14:00:00.000Z"
   },
   "tasks": {
     "T-002": {
       "title": "ESLint setup with typescript-eslint strict rules",
       "status": "done",
       "created": "2026-02-28T00:00:00Z",
-      "completed": "2026-02-27T12:00:00Z",
       "depends_on": [],
-      "priority": "low"
+      "priority": "low",
+      "completed": "2026-02-27T13:15:50.767Z"
     },
     "T-001": {
       "title": "Add GitLab CI support (CI_JOB_NAME, CI_PIPELINE_ID env vars, gitlab-ci.yml log format)",
-      "status": "ready",
+      "status": "done",
       "created": "2026-02-28T00:00:00Z",
       "depends_on": [],
-      "priority": "low"
+      "priority": "low",
+      "completed": "2026-02-27T14:00:00.000Z"
     }
   },
   "next_task_id": 3,

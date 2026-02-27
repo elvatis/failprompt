@@ -2,9 +2,11 @@
 import { Command } from 'commander';
 import { writeFileSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
-import { fetchFailedLog } from './log-fetcher.js';
+import { fetchFailedLog, fetchGitLabFailedLog } from './log-fetcher.js';
 import { extractErrors } from './error-extractor.js';
 import { buildPrompt } from './prompt-builder.js';
+import { detectCIProvider } from './ci-provider.js';
+import type { CIProvider } from './ci-provider.js';
 
 /** Detect current git repo in "owner/repo" format from remote origin */
 function detectRepo(): string {
@@ -56,12 +58,16 @@ program
   .description('Parse CI failure logs and generate ready-to-paste AI prompts')
   .version(getVersion(), '-V, --version', 'Output version number')
   .option('-r, --run <id>', 'Specific GitHub Actions run ID (default: auto-detect latest failed)')
+  .option('-p, --pipeline <id>', 'Specific GitLab CI pipeline ID (default: auto-detect latest failed)')
+  .option('-P, --provider <type>', 'CI provider: github, gitlab, auto (default: auto)', 'auto')
   .option('-R, --repo <owner/repo>', 'Repository in owner/repo format (default: git remote origin)')
   .option('-o, --output <file>', 'Write prompt to file instead of stdout')
   .option('--no-context', 'Skip git source context extraction')
   .option('-v, --verbose', 'Print debug info to stderr')
   .action((options: {
     run?: string;
+    pipeline?: string;
+    provider: string;
     repo?: string;
     output?: string;
     context?: boolean;
@@ -72,24 +78,56 @@ program
     };
 
     try {
+      // Resolve CI provider
+      let provider: CIProvider | 'auto' = 'auto';
+      if (options.provider === 'github' || options.provider === 'gitlab') {
+        provider = options.provider;
+      } else if (options.provider !== 'auto') {
+        throw new Error(`Unknown provider "${options.provider}". Use: github, gitlab, or auto`);
+      }
+
+      // Auto-detect provider from env vars if not specified
+      if (provider === 'auto') {
+        const detected = detectCIProvider();
+        if (detected.provider !== 'unknown') {
+          provider = detected.provider;
+          log(`Auto-detected CI provider: ${provider}`);
+        }
+      }
+
+      // If --pipeline is given, force GitLab provider
+      if (options.pipeline && provider === 'auto') {
+        provider = 'gitlab';
+      }
+
       // Resolve repo and branch
       const repo = options.repo ?? detectRepo();
       const branch = detectBranch();
-      const runId = options.run ?? 'latest';
 
+      // Determine the run/pipeline ID for the prompt
+      const runId = options.run ?? options.pipeline ?? 'latest';
+
+      log(`Provider: ${provider}`);
       log(`Repo: ${repo}`);
       log(`Branch: ${branch}`);
-      log(`Run ID: ${runId}`);
+      log(`Run/Pipeline ID: ${runId}`);
 
-      // Fetch the log
-      log('Fetching failed CI log via gh...');
-      const rawLog = fetchFailedLog(options.run, options.repo);
+      // Fetch the log based on provider
+      let rawLog: string;
+      if (provider === 'gitlab') {
+        log('Fetching failed CI log via glab...');
+        rawLog = fetchGitLabFailedLog(options.pipeline);
+      } else {
+        log('Fetching failed CI log via gh...');
+        rawLog = fetchFailedLog(options.run, options.repo);
+      }
 
       log(`Fetched ${rawLog.length} bytes of log output.`);
 
-      // Extract errors
+      // Extract errors (provider hint for log format detection)
       log('Extracting errors from log...');
-      const error = extractErrors(rawLog);
+      const resolvedProvider = provider === 'auto' ? 'auto' : provider;
+      const error = extractErrors(rawLog, resolvedProvider);
 
       log(`Step: ${error.stepName}`);
       log(`Errors found: ${error.allErrors.length}`);

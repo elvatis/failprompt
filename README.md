@@ -13,31 +13,33 @@ npx failprompt
 
 Every developer using AI has done this manually:
 
-1. CI fails on GitHub Actions
+1. CI fails on GitHub Actions or GitLab CI
 2. Open the run, scroll through 200 lines of logs
 3. Copy the relevant error
 4. Paste into Claude: *"what's wrong with this?"*
 5. Paste the relevant file
 6. Get the fix
 
-`failprompt` automates steps 2–5.
+`failprompt` automates steps 2-5.
 
 ---
 
 ## Prerequisites
 
 - **Node.js** 18+ (LTS recommended)
-- **[GitHub CLI (`gh`)](https://cli.github.com)**: installed and authenticated
+- **[GitHub CLI (`gh`)](https://cli.github.com)**: installed and authenticated (for GitHub Actions)
+- **[GitLab CLI (`glab`)](https://gitlab.com/gitlab-org/cli)**: installed and authenticated (for GitLab CI)
 
 ```bash
-# Install gh (macOS)
-brew install gh
-
-# Install gh (Linux)
-sudo apt install gh   # or follow https://cli.github.com/manual/installation
-
-# Authenticate
+# GitHub CLI
+brew install gh        # macOS
+sudo apt install gh    # Linux (or follow https://cli.github.com/manual/installation)
 gh auth login
+
+# GitLab CLI
+brew install glab      # macOS
+sudo apt install glab  # Linux (or follow https://gitlab.com/gitlab-org/cli)
+glab auth login
 ```
 
 ---
@@ -57,11 +59,17 @@ npx failprompt
 ## Usage
 
 ```bash
-# Auto-detect latest failed run on current branch
+# Auto-detect latest failed run on current branch (GitHub Actions)
 failprompt
 
-# Specific run ID
+# Specific GitHub Actions run ID
 failprompt --run 1234567890
+
+# GitLab CI - auto-detect latest failed pipeline
+failprompt --provider gitlab
+
+# GitLab CI - specific pipeline ID
+failprompt --pipeline 98765
 
 # Different repo
 failprompt --repo owner/repo
@@ -90,6 +98,8 @@ failprompt | clip
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--run <id>` | `-r` | Specific GitHub Actions run ID |
+| `--pipeline <id>` | `-p` | Specific GitLab CI pipeline ID |
+| `--provider <type>` | `-P` | CI provider: `github`, `gitlab`, `auto` (default: auto) |
 | `--repo <owner/repo>` | `-R` | Repository (default: git remote origin) |
 | `--output <file>` | `-o` | Write prompt to file |
 | `--no-context` | | Skip git source context extraction |
@@ -101,13 +111,15 @@ failprompt | clip
 
 ## How It Works
 
-1. Shells out to `gh run view --log-failed` to fetch the failed step log
-2. Strips ANSI codes and timestamps from raw output
-3. Detects error lines via `##[error]` markers, with fallbacks for `Error:`, `npm ERR!`, `FAILED`, `ENOENT`, `SyntaxError:`, and more
-4. Finds the failing step name from `##[group]` markers
-5. Extracts the relevant ±30-line error context block
-6. If a file path is referenced in the error, reads ±20 lines from that file
-7. Outputs a structured Markdown prompt optimised for LLMs
+1. Auto-detects CI provider (GitHub Actions or GitLab CI) from environment variables or log content
+2. Fetches the failed log via `gh` (GitHub) or `glab` (GitLab) CLI
+3. For GitLab, normalizes section markers (`section_start`/`section_end`) to a common format
+4. Strips ANSI codes and timestamps from raw output
+5. Detects error lines via `##[error]` markers, `ERROR: Job failed`, and fallbacks for `Error:`, `npm ERR!`, `FAILED`, `ENOENT`, `SyntaxError:`, and more
+6. Finds the failing step/section name
+7. Extracts the relevant +/-30-line error context block
+8. If a file path is referenced in the error, reads +/-20 lines from that file
+9. Outputs a structured Markdown prompt optimized for LLMs
 
 ---
 

@@ -1,8 +1,13 @@
+import type { CIProvider } from './ci-provider.js';
+import { detectProviderFromLog } from './ci-provider.js';
+
+export type { CIProvider };
+
 /**
  * Result of error extraction from a raw CI log.
  */
 export interface ExtractedError {
-  /** Name of the failing step (from ##[group] marker) */
+  /** Name of the failing step (from ##[group] marker or GitLab section) */
   stepName: string;
   /** Lines from the failing step context + error lines */
   errorLines: string[];
@@ -45,18 +50,41 @@ export function parseGhLogLine(line: string): { job: string; step: string; conte
 
 /**
  * Returns true if a line matches broader error heuristics beyond ##[error].
- * Covers: plain Error:/error: prefixes, FAILED, npm ERR!, ENOENT, SyntaxError, etc.
+ * Covers: plain Error:/error:/ERROR: prefixes, FAILED, npm ERR!, ENOENT,
+ * SyntaxError, and GitLab-specific "Job failed" patterns.
  */
 function isExtendedError(line: string): boolean {
   return (
-    /^(Error|error):/.test(line) ||
+    /^(Error|error|ERROR):/.test(line) ||
     /\bFAILED\b/.test(line) ||
     /failed with exit code/i.test(line) ||
     /^npm ERR!/i.test(line) ||
     /\bENOENT\b/.test(line) ||
     /Cannot find module/i.test(line) ||
-    /^SyntaxError:/i.test(line)
+    /^SyntaxError:/i.test(line) ||
+    /^ERROR: Job failed/i.test(line)
   );
+}
+
+/**
+ * Normalize a GitLab CI log into a format the existing extractor understands.
+ *
+ * Conversions:
+ * - `section_start:TIMESTAMP:NAME` becomes `##[group]NAME` (on its own line)
+ * - `section_end:TIMESTAMP:NAME` becomes `##[endgroup]`
+ * - `ERROR: Job failed...` becomes `##[error]ERROR: Job failed...`
+ * - ANSI escape codes and carriage returns are stripped
+ *
+ * Order matters: ANSI is stripped first, then section markers (which use \r
+ * as delimiter between marker and content), then remaining \r, then ERROR:.
+ */
+export function normalizeGitLabLog(rawLog: string): string {
+  return rawLog
+    .replace(/\x1b\[[0-9;]*[mK]/g, '')
+    .replace(/section_start:\d+:(\w+)\r?/g, '##[group]$1\n')
+    .replace(/section_end:\d+:\w+\r?/g, '##[endgroup]\n')
+    .replace(/\r/g, '')
+    .replace(/^(ERROR: Job failed.*)/gm, '##[error]$1');
 }
 
 /**
@@ -161,19 +189,24 @@ function extractContext(
 }
 
 /**
- * Extract structured error information from a raw GitHub Actions log.
+ * Extract structured error information from a CI log (GitHub Actions or GitLab CI).
+ *
+ * @param rawLog   - Raw log output from the CI system
+ * @param provider - CI provider hint: 'github', 'gitlab', or 'auto' (default).
+ *                   When 'auto', the provider is detected from log content.
  *
  * Algorithm:
- * 1. Split into lines, strip ANSI + timestamps
- * 2. Find all ##[error] lines → collect indices (primary)
- * 3. If none found, try extended heuristics: Error:, FAILED, npm ERR!, ENOENT, etc.
- * 4. If still none found, fall back to last 30 lines (better than empty output)
- * 5. Focus on the LAST matching line (usually the root cause)
- * 6. Scan backwards for nearest ##[group] → failing step name
- * 7. Extract context: from ##[group] through ##[endgroup] (or ±30/5 lines)
- * 8. Extract file paths from error lines
+ * 1. If GitLab, normalize section markers to ##[group]/##[endgroup] format
+ * 2. Split into lines, strip ANSI + timestamps
+ * 3. Find all ##[error] lines - collect indices (primary)
+ * 4. If none found, try extended heuristics: Error:, FAILED, npm ERR!, ENOENT, etc.
+ * 5. If still none found, fall back to last 30 lines (better than empty output)
+ * 6. Focus on the LAST matching line (usually the root cause)
+ * 7. Scan backwards for nearest ##[group] - failing step name
+ * 8. Extract context: from ##[group] through ##[endgroup] (or +/-30/5 lines)
+ * 9. Extract file paths from error lines
  */
-export function extractErrors(rawLog: string): ExtractedError {
+export function extractErrors(rawLog: string, provider: CIProvider | 'auto' = 'auto'): ExtractedError {
   const empty: ExtractedError = {
     stepName: '(unknown)',
     errorLines: [],
@@ -186,7 +219,11 @@ export function extractErrors(rawLog: string): ExtractedError {
     return empty;
   }
 
-  const rawLines = rawLog.split('\n');
+  // Detect and normalize GitLab logs into the common format
+  const resolved = provider === 'auto' ? detectProviderFromLog(rawLog) : provider;
+  const normalizedLog = resolved === 'gitlab' ? normalizeGitLabLog(rawLog) : rawLog;
+
+  const rawLines = normalizedLog.split('\n');
 
   // Pre-parse gh log format to extract step names per line
   const parsed = rawLines.map(parseGhLogLine);
