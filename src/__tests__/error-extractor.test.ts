@@ -172,11 +172,11 @@ describe('extractErrors', () => {
 
   test('10. Error lines are limited to 50 lines maximum', () => {
     // Create a log with many lines
-    const manyLines = Array.from({ length: 100 }, (_, i) =>
+    const manyLines = Array.from({ length: 100 }, () =>
       `2024-01-15T10:00:00.0000000Z ##[group]Big step`
     );
     manyLines.push(...Array.from({ length: 100 }, (_, i) =>
-      `2024-01-15T10:00:01.0000000Z Line ${i}: some output`
+      `2024-01-15T10:00:01.0000000Z Line ${String(i)}: some output`
     ));
     manyLines.push('2024-01-15T10:00:02.0000000Z ##[error]Something failed');
     const bigLog = manyLines.join('\n');

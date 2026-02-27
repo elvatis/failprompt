@@ -43,11 +43,6 @@ export function parseGhLogLine(line: string): { job: string; step: string; conte
   return { job: '', step: '', content: stripTimestamp(stripAnsi(line)).trim() };
 }
 
-/** Clean a single line: parse gh format, then strip ANSI + timestamps */
-function cleanLine(line: string): string {
-  return parseGhLogLine(line).content;
-}
-
 /**
  * Returns true if a line matches broader error heuristics beyond ##[error].
  * Covers: plain Error:/error: prefixes, FAILED, npm ERR!, ENOENT, SyntaxError, etc.

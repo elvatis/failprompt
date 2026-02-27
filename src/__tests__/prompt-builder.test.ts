@@ -1,6 +1,6 @@
 import { buildPrompt, readFileContext } from '../prompt-builder.js';
 import type { ExtractedError } from '../error-extractor.js';
-import { writeFileSync, unlinkSync, mkdirSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import os from 'os';
 

@@ -39,8 +39,11 @@ function detectBranch(): string {
 function getVersion(): string {
   try {
     // In dist/, package.json is one level up
-    const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'));
-    return pkg.version as string;
+    const raw: unknown = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'));
+    if (typeof raw === 'object' && raw !== null && 'version' in raw && typeof (raw as { version: unknown }).version === 'string') {
+      return (raw as { version: string }).version;
+    }
+    return '0.1.0';
   } catch {
     return '0.1.0';
   }
@@ -57,8 +60,14 @@ program
   .option('-o, --output <file>', 'Write prompt to file instead of stdout')
   .option('--no-context', 'Skip git source context extraction')
   .option('-v, --verbose', 'Print debug info to stderr')
-  .action(async (options) => {
-    const verbose = (msg: string) => {
+  .action((options: {
+    run?: string;
+    repo?: string;
+    output?: string;
+    context?: boolean;
+    verbose?: boolean;
+  }) => {
+    const log = (msg: string) => {
       if (options.verbose) process.stderr.write(`[verbose] ${msg}\n`);
     };
 
@@ -68,26 +77,26 @@ program
       const branch = detectBranch();
       const runId = options.run ?? 'latest';
 
-      verbose(`Repo: ${repo}`);
-      verbose(`Branch: ${branch}`);
-      verbose(`Run ID: ${runId}`);
+      log(`Repo: ${repo}`);
+      log(`Branch: ${branch}`);
+      log(`Run ID: ${runId}`);
 
       // Fetch the log
-      verbose('Fetching failed CI log via gh...');
+      log('Fetching failed CI log via gh...');
       const rawLog = fetchFailedLog(options.run, options.repo);
 
-      verbose(`Fetched ${rawLog.length} bytes of log output.`);
+      log(`Fetched ${rawLog.length} bytes of log output.`);
 
       // Extract errors
-      verbose('Extracting errors from log...');
+      log('Extracting errors from log...');
       const error = extractErrors(rawLog);
 
-      verbose(`Step: ${error.stepName}`);
-      verbose(`Errors found: ${error.allErrors.length}`);
-      verbose(`File paths: ${error.filePaths.join(', ')}`);
+      log(`Step: ${error.stepName}`);
+      log(`Errors found: ${error.allErrors.length}`);
+      log(`File paths: ${error.filePaths.join(', ')}`);
 
       // Build prompt
-      verbose('Building LLM prompt...');
+      log('Building LLM prompt...');
       const prompt = buildPrompt({
         repo,
         branch,
@@ -99,7 +108,7 @@ program
       // Output
       if (options.output) {
         writeFileSync(options.output, prompt, 'utf-8');
-        process.stderr.write(`✓ Prompt written to ${options.output}\n`);
+        process.stderr.write(`Prompt written to ${options.output}\n`);
       } else {
         process.stdout.write(prompt + '\n');
         process.stderr.write(
@@ -108,7 +117,7 @@ program
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      process.stderr.write(`\n✗ Error: ${msg}\n`);
+      process.stderr.write(`\nError: ${msg}\n`);
       process.exit(1);
     }
   });
