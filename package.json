@@ -1,5 +1,5 @@
 {
-  "name": "failprompt",
+  "name": "@elvatis_com/failprompt",
   "version": "0.1.0",
   "description": "Parse CI failure logs and generate ready-to-paste AI prompts - in one command.",
   "type": "module",
