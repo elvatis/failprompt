@@ -67,7 +67,7 @@
 
 4. **Stdout cleanliness:** ✅ All non-prompt output (verbose, tips, errors) goes to `process.stderr`. Prompt goes to `process.stdout`. No color/spinner in stdout. Pipe-safe.
 
-5. **Prompt template quality:** ⚠️ Minor deviation from ADR template. ADR specifies `# CI Failure — Fix This Error` with `## Error Summary` (bulleted allErrors) + `## Failed Step` + `## Instructions`. Implementation uses `## CI Failure — repo/branch` with `### Error` (fullContext only) + `### Task`. The ADR's bulleted allErrors summary is lost: when there are multiple errors across steps, only the last step's context is shown in the error block. The `allErrors` field exists but is never rendered in the prompt. **This should be fixed.**
+5. **Prompt template quality:** ⚠️ Minor deviation from ADR template. ADR specifies `# CI Failure - Fix This Error` with `## Error Summary` (bulleted allErrors) + `## Failed Step` + `## Instructions`. Implementation uses `## CI Failure - repo/branch` with `### Error` (fullContext only) + `### Task`. The ADR's bulleted allErrors summary is lost: when there are multiple errors across steps, only the last step's context is shown in the error block. The `allErrors` field exists but is never rendered in the prompt. **This should be fixed.**
 
 6. **Missing CLI flags:** ✅ All ADR-specified flags present: `--run/-r`, `--repo/-R`, `--output/-o`, `--no-context`, `--verbose/-v`, `--version/-V`, `--help`. No gaps.
 
@@ -167,10 +167,10 @@ Split into 4 small modules under `src/`:
 
 ```
 src/
-  index.ts          — CLI entry point (commander setup, arg parsing, orchestration)
-  log-fetcher.ts    — shells out to `gh`, returns raw log string
-  error-extractor.ts — parses raw log, returns structured error object
-  prompt-builder.ts  — takes extracted error + optional file context, returns formatted prompt string
+  index.ts          - CLI entry point (commander setup, arg parsing, orchestration)
+  log-fetcher.ts    - shells out to `gh`, returns raw log string
+  error-extractor.ts - parses raw log, returns structured error object
+  prompt-builder.ts  - takes extracted error + optional file context, returns formatted prompt string
 ```
 
 Rationale: each module has one job, testable in isolation. Still only 4 files, not over-engineered.
@@ -210,7 +210,7 @@ Key regexes:
 ### Prompt template
 
 ```markdown
-# CI Failure — Fix This Error
+# CI Failure - Fix This Error
 
 ## Error Summary
 {allErrors joined by newline, each prefixed with "- "}

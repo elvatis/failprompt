@@ -114,7 +114,7 @@ failprompt | clip
 ## Output Format
 
 ```markdown
-## CI Failure — owner/repo / branch
+## CI Failure - owner/repo / branch
 **Run:** <run-id>
 **Failing step:** <step-name>
 

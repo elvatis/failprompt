@@ -101,7 +101,7 @@ function extractContext(
 } {
   const allErrors = errorIndices.map((i) => lines[i]);
 
-  // Focus on the last error — most likely the root cause
+  // Focus on the last error - most likely the root cause
   const lastErrorIdx = errorIndices[errorIndices.length - 1];
 
   // Try to get step name from gh log metadata first (tab-separated format)

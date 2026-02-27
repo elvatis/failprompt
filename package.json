@@ -1,7 +1,7 @@
 {
   "name": "failprompt",
   "version": "0.1.0",
-  "description": "Parse CI failure logs and generate ready-to-paste AI prompts — in one command.",
+  "description": "Parse CI failure logs and generate ready-to-paste AI prompts - in one command.",
   "type": "module",
   "bin": {
     "failprompt": "./dist/index.js"

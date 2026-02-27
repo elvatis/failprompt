@@ -49,7 +49,7 @@ Applies review findings. Re-runs tests. Pushes. Updates `DASHBOARD.md` and `TRUS
 ## Notification Rule
 
 **Notify project owner only when a full task is done**, not on phase transitions.
-Format: `✅ failprompt [feature] done — Branch: feat/... — Tests: X/X`
+Format: `✅ failprompt [feature] done - Branch: feat/... - Tests: X/X`
 
 ---
 

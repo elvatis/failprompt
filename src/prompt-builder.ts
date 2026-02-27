@@ -61,7 +61,7 @@ export function readFileContext(filePath: string): FileContext | null {
  * Builds a structured LLM prompt from an extracted CI error.
  *
  * Format:
- * ## CI Failure — [repo] / [branch]
+ * ## CI Failure - [repo] / [branch]
  * **Run:** [run-id or "latest"]
  * **Failing step:** [step name]
  *
@@ -84,7 +84,7 @@ export function buildPrompt(options: PromptOptions): string {
   const parts: string[] = [];
 
   // Header
-  parts.push(`## CI Failure — ${repo} / ${branch}`);
+  parts.push(`## CI Failure - ${repo} / ${branch}`);
   parts.push(`**Run:** ${runId}`);
   parts.push(`**Failing step:** ${error.stepName}`);
   parts.push('');

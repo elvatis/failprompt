@@ -133,7 +133,7 @@ describe('extractErrors', () => {
     expect(result.filePaths).toHaveLength(0);
   });
 
-  test('5. Handles log with no error markers — falls back to last 30 lines', () => {
+  test('5. Handles log with no error markers - falls back to last 30 lines', () => {
     const result = extractErrors(NO_ERROR_LOG);
     // With no ##[error] markers and no extended error patterns,
     // extractErrors falls back to the last 30 lines so the user gets something useful
@@ -237,7 +237,7 @@ describe('Extended error detection', () => {
     expect(result.stepName).toBe('(unknown)');
   });
 
-  test('17. Matrix build log with multiple job errors — all captured in allErrors', () => {
+  test('17. Matrix build log with multiple job errors - all captured in allErrors', () => {
     const result = extractErrors(MATRIX_ERROR_LOG);
     // All 3 ##[error] lines from the 3 matrix jobs should be collected
     expect(result.allErrors).toHaveLength(3);
