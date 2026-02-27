@@ -8,11 +8,11 @@
   "quick_context": "failprompt v0.1.0 published on npm. 75/75 tests passing. GitHub Actions + GitLab CI support. ESLint strict type-checked config. All tasks complete.",
   "last_session": {
     "agent": "claude-code",
-    "duration_minutes": 10,
+    "duration_minutes": 2,
     "session_id": "gitlab-ci-t001",
     "phase": "maintenance",
     "commit": "63595e4",
-    "timestamp": "2026-02-27T14:00:00.000Z"
+    "timestamp": "2026-02-27T13:32:25.312Z"
   },
   "tasks": {
     "T-002": {
@@ -29,7 +29,7 @@
       "created": "2026-02-28T00:00:00Z",
       "depends_on": [],
       "priority": "low",
-      "completed": "2026-02-27T14:00:00.000Z"
+      "completed": "2026-02-27T13:32:25.312Z"
     }
   },
   "next_task_id": 3,
