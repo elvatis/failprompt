@@ -1,4 +1,4 @@
-# failprompt: Build Dashboard
+﻿# failprompt: Build Dashboard
 
 > Last updated: 2026-02-21
 
@@ -34,7 +34,7 @@
 | TypeScript compile error | `src/parser.ts(42,7): TS2345` | `Run build`    | ✅     |
 | npm ERR! missing module  | `Cannot find module 'express'` | `Run server`   | ✅     |
 | Jest assertion failure   | `Expected: 401, Received: 200` | `Run tests`    | ✅     |
-| Real CI (own repo)       | Run 22257459273, homeofe/failprompt | `Run tests` | ✅     |
+| Real CI (own repo)       | Run 22257459273, elvatis/failprompt | `Run tests` | ✅     |
 
 ---
 

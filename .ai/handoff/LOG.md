@@ -1,4 +1,4 @@
-# failprompt: Agent Journal
+﻿# failprompt: Agent Journal
 
 > **Append-only.** This file is the immutable history of every agent decision.
 > Newest entries at the top.
@@ -410,7 +410,7 @@ Winner: **commander**
 
 **Build:** tsc - clean (0 errors, 0 warnings)
 **Tests:** 29/29 passed (2 suites: error-extractor 17/17, prompt-builder 12/12)
-**Branch:** main (already pushed to github.com/homeofe/failprompt)
+**Branch:** main (already pushed to github.com/elvatis/failprompt)
 **npm-ready:** bin field, shebang, files whitelist, prepublishOnly guard - all confirmed.
 
 **CLI flags verified:**

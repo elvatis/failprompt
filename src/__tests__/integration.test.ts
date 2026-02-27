@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration tests: full pipeline from raw gh log to prompt output.
  * Each scenario uses a realistic gh log snippet from a different failure type.
  */
@@ -84,7 +84,7 @@ describe('scenario 1: TypeScript compile error', () => {
   it('builds a complete prompt with TS error context', () => {
     const error = extractErrors(TS_COMPILE_LOG);
     const prompt = buildPrompt({
-      repo: 'homeofe/myapp',
+      repo: 'elvatis/myapp',
       branch: 'feat/auth',
       runId: '11111',
       includeContext: false,
@@ -125,7 +125,7 @@ describe('scenario 2: npm ERR! missing module', () => {
   it('builds a prompt that is paste-ready for an LLM', () => {
     const error = extractErrors(NPM_ERR_LOG);
     const prompt = buildPrompt({
-      repo: 'homeofe/myapp',
+      repo: 'elvatis/myapp',
       branch: 'main',
       runId: '22222',
       includeContext: false,
@@ -159,7 +159,7 @@ describe('scenario 3: Jest test failure', () => {
   it('full prompt contains the received vs expected values', () => {
     const error = extractErrors(JEST_FAILURE_LOG);
     const prompt = buildPrompt({
-      repo: 'homeofe/myapp',
+      repo: 'elvatis/myapp',
       branch: 'fix/auth',
       runId: '33333',
       includeContext: false,

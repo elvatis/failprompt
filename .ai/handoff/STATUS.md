@@ -1,4 +1,4 @@
-# failprompt: Current State
+﻿# failprompt: Current State
 
 > Last updated: 2026-02-21
 > Status: **Complete. 42/42 tests. GitHub Actions CI live. Ready for npm publish.**
@@ -30,7 +30,7 @@
 ## Tested End-to-End
 
 The tool was tested against a real GitHub Actions failure in its own repo (run `22257459273`):
-- Auto-detected repo: `homeofe/failprompt`
+- Auto-detected repo: `elvatis/failprompt`
 - Auto-detected branch: `main`
 - Auto-detected latest failed run - no flags needed
 - Correctly identified failing step: `Run tests`

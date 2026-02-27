@@ -1,6 +1,6 @@
-# failprompt: Autonomous Multi-Agent Workflow
+﻿# failprompt: Autonomous Multi-Agent Workflow
 
-> Based on the [AAHP Protocol](https://github.com/homeofe/AAHP).
+> Based on the [AAHP Protocol](https://github.com/elvatis/AAHP).
 > This file documents how agents collaborate on this project autonomously.
 
 ---

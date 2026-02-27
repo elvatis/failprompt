@@ -1,4 +1,4 @@
-# failprompt
+﻿# failprompt
 
 > **Parse CI failure logs and generate ready-to-paste AI prompts, in one command.**
 
@@ -151,7 +151,7 @@ Fix the error above. Explain what caused it and provide the corrected code.
 
 ## ⚠️ AAHP Case Study
 
-> **This project is a public demonstration of the [AAHP Protocol](https://github.com/homeofe/AAHP).**
+> **This project is a public demonstration of the [AAHP Protocol](https://github.com/elvatis/AAHP).**
 >
 > It was built end-to-end by a multi-agent pipeline (Sonar → Opus → Sonnet → Review → Fix)
 > with no manual code writing. Every decision is documented in `.ai/handoff/LOG.md`.
