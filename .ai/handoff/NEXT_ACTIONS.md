@@ -1,39 +1,55 @@
 # failprompt: Next Actions
 
-> Last updated: 2026-02-21
-> Priority order. Work top-down.
+> Last updated: 2026-02-28
+> Generated from MANIFEST.json task queue.
 
 ---
 
-## 1. GitLab CI support (Phase 2)
+## Status Summary
+
+| Status  | Count |
+| ------- | ----- |
+| Done    | 3     |
+| Ready   | 1     |
+| Blocked | 0     |
+
+---
+
+## Ready - Work These Next
+
+### T-004: Add GitLab CI support [medium]
 
 **Goal:** Support GitLab pipelines in addition to GitHub Actions.
 
-GitLab uses `CI_JOB_NAME`, `CI_PIPELINE_ID` env vars and the `gitlab-ci.yml` log format.
-The `log-fetcher.ts` would need a GitLab adapter alongside the existing `gh` shell-out.
+**Context:** GitLab uses `CI_JOB_NAME`, `CI_PIPELINE_ID` env vars and `gitlab-ci.yml` log format. The `log-fetcher.ts` needs a GitLab adapter alongside the existing `gh` shell-out.
+
+**What to do:**
+- Add a GitLab CI log fetcher that reads pipeline logs via GitLab API or `glab` CLI
+- Detect GitLab CI environment variables (`CI_JOB_NAME`, `CI_PIPELINE_ID`)
+- Parse GitLab-specific log format (ANSI color codes, section markers)
+- Add tests with fixture strings (no real API calls)
+
+**Files:**
+- `src/log-fetcher.ts` - add GitLab adapter
+- `src/ci-provider.ts` - may need GitLab detection logic
+- `src/__tests__/` - new test fixtures for GitLab log format
+
+**Definition of done:** `npm run lint && npm run build && npm test` all pass. GitLab CI logs can be fetched and parsed into the same structured format as GitHub Actions logs.
+
+**GitHub Issue:** [#1](https://github.com/elvatis/failprompt/issues/1)
 
 ---
 
-## 3. ESLint setup (optional)
+## Blocked
 
-Add `@typescript-eslint/eslint-plugin` with strict rules. Low priority - code is already
-clean and type-safe. Nice to have for contribution hygiene.
+_No blocked tasks._
 
 ---
 
 ## Recently Completed
 
-| Item | Resolution |
-| ---- | ---------- |
-| Project setup | Repo initialized, README, AAHP files |
-| Research | gh CLI approach confirmed, commander chosen, no competing OSS tools found |
-| Architecture | 4-module split (index/log-fetcher/error-extractor/prompt-builder), gh shell-out |
-| MVP implementation | 29/29 tests, build clean, npm-ready |
-| Review round | Opus: APPROVED, ChatGPT: APPROVED WITH CHANGES |
-| Post-review fixes | Env validation, PKCE bounds, redirect URI hardening (adapted from AEGIS pattern) |
-| gh log format bug | Parsing fixed: job/step/timestamp prefix now correctly stripped, step name extracted from metadata |
-| Integration tests | 3 scenarios: TypeScript error, npm ERR!, Jest failure - all passing |
-| GitHub Actions CI | `.github/workflows/ci.yml` live - runs on every push |
-| Real E2E test | Tested against own failing CI run (22257459273) - output validated |
-| npm publish | v0.1.0 live on npmjs.com/package/failprompt - npx failprompt works globally |
-| Blog update | blog.elvatis.com AAHP article section 8.2 updated with npm link + E2E test description |
+| Task | Title | Completed |
+| ---- | ----- | --------- |
+| T-003 | Add ESLint setup | 2026-02-28 |
+| T-001 | Add GitLab CI support (CI_JOB_NAME, CI_PIPELINE_ID env vars, gitlab-ci.yml log format) | 2026-02-27 |
+| T-002 | ESLint setup with typescript-eslint strict rules | 2026-02-27 |

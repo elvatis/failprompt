@@ -5,14 +5,14 @@
     "manifest_only": 100
   },
   "project": "failprompt",
-  "quick_context": "failprompt v0.1.0 published on npm. 75/75 tests passing. GitHub Actions + GitLab CI support. ESLint strict type-checked config. All tasks complete.",
+  "quick_context": "failprompt v0.1.0 published on npm. 75/75 tests passing. GitHub Actions + GitLab CI support. ESLint strict type-checked config. T-003 (ESLint) closed - was already done via T-002. T-004 (GitLab CI) remains ready.",
   "last_session": {
     "agent": "claude-code",
-    "duration_minutes": 2,
-    "session_id": "gitlab-ci-t001",
+    "duration_minutes": 3,
+    "session_id": "eslint-t003",
     "phase": "maintenance",
-    "commit": "63595e4",
-    "timestamp": "2026-02-27T13:32:25.312Z"
+    "commit": "b7951e2",
+    "timestamp": "2026-02-28T19:00:00.000Z"
   },
   "tasks": {
     "T-002": {
@@ -30,9 +30,30 @@
       "depends_on": [],
       "priority": "low",
       "completed": "2026-02-27T13:32:25.312Z"
+    },
+    "T-003": {
+      "title": "Add ESLint setup",
+      "status": "done",
+      "priority": "medium",
+      "depends_on": [],
+      "created": "2026-02-28T18:15:10.681Z",
+      "completed": "2026-02-28T19:00:00.000Z",
+      "notes": "Already completed via T-002 (commit 49276f6). ESLint strict type-checked config with typescript-eslint, CI integration, and clean lint verified.",
+      "github_issue": 2,
+      "github_repo": "elvatis/failprompt"
+    },
+    "T-004": {
+      "title": "Add GitLab CI support",
+      "status": "ready",
+      "priority": "medium",
+      "depends_on": [],
+      "created": "2026-02-28T18:15:10.681Z",
+      "notes": "Support GitLab pipelines in addition to GitHub Actions.\n\nGitLab uses `CI_JOB_NAME`, `CI_PIPELINE_ID` env vars and `gitlab-ci.yml` log format. The `log-fetcher.ts` needs a GitLab adapter alongside the existing `gh` shell-out.\n\n**From AAHP NEXT_ACTIONS**",
+      "github_issue": 1,
+      "github_repo": "elvatis/failprompt"
     }
   },
-  "next_task_id": 3,
+  "next_task_id": 5,
   "files": {
     "NEXT_ACTIONS.md": {
       "updated": "2026-02-28T00:00:00Z",
