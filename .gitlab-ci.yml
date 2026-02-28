@@ -1,0 +1,15 @@
+stages:
+  - test
+
+test:
+  stage: test
+  image: node:20-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  script:
+    - npm ci
+    - npm run lint
+    - npx tsc --noEmit
+    - npm test
