@@ -56,7 +56,7 @@
     "T-005": {
       "title": "Multi-file source context in prompts [high]",
       "status": "ready",
-      "priority": "medium",
+      "priority": "high",
       "depends_on": [],
       "created": "2026-03-02T03:55:42.428Z",
       "github_issue": 3,
@@ -65,7 +65,7 @@
     "T-006": {
       "title": "Expand file path extraction for monorepos [high]",
       "status": "ready",
-      "priority": "medium",
+      "priority": "high",
       "depends_on": [],
       "created": "2026-03-02T03:55:42.428Z",
       "github_issue": 4,
@@ -92,7 +92,7 @@
     "T-009": {
       "title": "Add --json output mode for programmatic use [low]",
       "status": "ready",
-      "priority": "medium",
+      "priority": "low",
       "depends_on": [],
       "created": "2026-03-02T03:55:42.429Z",
       "github_issue": 7,
