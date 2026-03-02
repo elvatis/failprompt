@@ -52,9 +52,54 @@
       "github_issue": 1,
       "github_repo": "elvatis/failprompt",
       "completed": "2026-02-28T18:29:07.839Z"
+    },
+    "T-005": {
+      "title": "Multi-file source context in prompts [high]",
+      "status": "ready",
+      "priority": "medium",
+      "depends_on": [],
+      "created": "2026-03-02T03:55:42.428Z",
+      "github_issue": 3,
+      "github_repo": "elvatis/failprompt"
+    },
+    "T-006": {
+      "title": "Expand file path extraction for monorepos [high]",
+      "status": "ready",
+      "priority": "medium",
+      "depends_on": [],
+      "created": "2026-03-02T03:55:42.428Z",
+      "github_issue": 4,
+      "github_repo": "elvatis/failprompt"
+    },
+    "T-007": {
+      "title": "Mock-based tests for log fetcher CLI interactions [medium]",
+      "status": "ready",
+      "priority": "medium",
+      "depends_on": [],
+      "created": "2026-03-02T03:55:42.428Z",
+      "github_issue": 5,
+      "github_repo": "elvatis/failprompt"
+    },
+    "T-008": {
+      "title": "Add --branch flag and fix default branch fallback [medium]",
+      "status": "ready",
+      "priority": "medium",
+      "depends_on": [],
+      "created": "2026-03-02T03:55:42.429Z",
+      "github_issue": 6,
+      "github_repo": "elvatis/failprompt"
+    },
+    "T-009": {
+      "title": "Add --json output mode for programmatic use [low]",
+      "status": "ready",
+      "priority": "medium",
+      "depends_on": [],
+      "created": "2026-03-02T03:55:42.429Z",
+      "github_issue": 7,
+      "github_repo": "elvatis/failprompt"
     }
   },
-  "next_task_id": 5,
+  "next_task_id": 10,
   "files": {
     "NEXT_ACTIONS.md": {
       "updated": "2026-02-28T00:00:00Z",
