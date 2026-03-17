@@ -97,9 +97,19 @@
       "created": "2026-03-02T03:55:42.429Z",
       "github_issue": 7,
       "github_repo": "elvatis/failprompt"
+    },
+    "T-010": {
+      "title": "[CI] Failed run 22561944940 — ESLint/TS errors (@typescript-eslint no-unsafe-*)",
+      "status": "ready",
+      "priority": "low",
+      "depends_on": [],
+      "created": "2026-03-08T08:04:21.705Z",
+      "notes": "Automated CI triage created by Akido.\n\nRepository: elvatis/failprompt\nFailed run: 22561944940\nRun URL: https://github.com/elvatis/failprompt/actions/runs/22561944940\n\nSummary:\nESLint/TS errors (@typescript-eslint no-unsafe-*)\n\nRelevant log excerpts:\n- See the Actions run for full logs: https://github.com/elvatis/failprompt/actions/runs/22561944940\n\nSuggested next steps:\n- Reproduce locally: run the CI steps (install deps, tsc, lint, tests).\n- Apply the suggested fix from the automated scan (see ",
+      "github_issue": 8,
+      "github_repo": "elvatis/failprompt"
     }
   },
-  "next_task_id": 10,
+  "next_task_id": 11,
   "files": {
     "NEXT_ACTIONS.md": {
       "updated": "2026-02-28T00:00:00Z",
