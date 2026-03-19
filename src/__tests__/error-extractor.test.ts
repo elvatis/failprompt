@@ -370,3 +370,121 @@ describe('GitLab CI error extraction', () => {
     expect(result.filePaths.some((p) => p.includes('src/'))).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// T-006: Expanded file path extraction for monorepos
+// ---------------------------------------------------------------------------
+
+describe('extractFilePaths - monorepo and extended patterns (T-006)', () => {
+  test('32. Extracts paths with packages/ prefix (monorepo)', () => {
+    const lines = ['Error: packages/core/src/utils.ts:15:3 - Cannot find name'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('packages/core/src/utils.ts'))).toBe(true);
+  });
+
+  test('33. Extracts paths with apps/ prefix (monorepo)', () => {
+    const lines = ['##[error]apps/web/src/pages/index.tsx:20 - type error'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('apps/web/src/pages/index.tsx'))).toBe(true);
+  });
+
+  test('34. Extracts paths with test/ prefix', () => {
+    const lines = ['FAIL test/unit/helper.test.ts'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('test/unit/helper.test.ts'))).toBe(true);
+  });
+
+  test('35. Extracts paths with tests/ prefix', () => {
+    const lines = ['Error in tests/integration/api.test.ts:42'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('tests/integration/api.test.ts'))).toBe(true);
+  });
+
+  test('36. Extracts paths with dist/ prefix', () => {
+    const lines = ['##[error]dist/index.js:1:100 - unexpected token'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('dist/index.js'))).toBe(true);
+  });
+
+  test('37. Extracts paths with build/ prefix', () => {
+    const lines = ['##[error]build/output.js:10 - runtime error'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('build/output.js'))).toBe(true);
+  });
+
+  test('38. Extracts paths from stack trace format: at ... (filepath:line:col)', () => {
+    const lines = [
+      '    at Object.<anonymous> (src/utils.ts:42:5)',
+      '    at Module._compile (internal/modules/cjs/loader.js:999:30)',
+    ];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('src/utils.ts'))).toBe(true);
+    // Internal node modules should not be captured (no matching prefix)
+    expect(paths.every((p) => !p.includes('internal/modules'))).toBe(true);
+  });
+
+  test('39. Extracts paths from stack trace without parens: at filepath:line', () => {
+    const lines = ['    at src/index.ts:10:3'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('src/index.ts'))).toBe(true);
+  });
+
+  test('40. Extracts Windows backslash paths: src\\\\foo.ts', () => {
+    const lines = ['##[error]src\\components\\Button.tsx:15 - error TS2345'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('src\\') || p.includes('Button.tsx'))).toBe(true);
+  });
+
+  test('41. Supports uppercase extension .TS', () => {
+    const lines = ['Error in src/FOO.TS:10'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('FOO.TS') || p.includes('FOO.ts'))).toBe(true);
+  });
+
+  test('42. Supports uppercase extension .TSX', () => {
+    const lines = ['FAIL src/Component.TSX'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.toLowerCase().includes('.tsx'))).toBe(true);
+  });
+
+  test('43. Supports uppercase extension .JS', () => {
+    const lines = ['Error: dist/bundle.JS:1 unexpected token'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.toLowerCase().includes('.js'))).toBe(true);
+  });
+
+  test('44. Supports uppercase extension .JSX', () => {
+    const lines = ['##[error]src/App.JSX:5 - missing return type'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.toLowerCase().includes('.jsx'))).toBe(true);
+  });
+
+  test('45. Deduplicates extracted paths when path appears multiple times', () => {
+    const lines = [
+      'Error in src/utils.ts:10',
+      'Also see src/utils.ts:20',
+      'And again: src/utils.ts:30',
+    ];
+    const paths = extractFilePaths(lines);
+    // Count how many times src/utils.ts appears (ignoring line numbers in path)
+    const utilsMatches = paths.filter((p) => p.includes('src/utils.ts'));
+    // The raw paths may differ by line number, but if the same path appears
+    // without line numbers, it should be deduplicated
+    expect(utilsMatches.length).toBeGreaterThan(0);
+    // No exact duplicates
+    const unique = new Set(paths);
+    expect(unique.size).toBe(paths.length);
+  });
+
+  test('46. Returns empty array for lines with no file paths', () => {
+    const lines = ['Process exited with code 1', 'Cleaning up...'];
+    const paths = extractFilePaths(lines);
+    expect(paths).toHaveLength(0);
+  });
+
+  test('47. Stack trace with packages/ monorepo prefix is captured', () => {
+    const lines = ['    at exports.run (packages/cli/src/runner.ts:88:12)'];
+    const paths = extractFilePaths(lines);
+    expect(paths.some((p) => p.includes('packages/cli/src/runner.ts'))).toBe(true);
+  });
+});

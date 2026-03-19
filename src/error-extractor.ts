@@ -89,19 +89,64 @@ export function normalizeGitLabLog(rawLog: string): string {
 
 /**
  * Extract file paths from error lines.
- * Matches patterns like: ./src/foo.ts:42, src/foo.ts, lib/bar.js:10
+ * Matches patterns like:
+ *   - ./src/foo.ts:42, src/foo.ts, lib/bar.js:10 (Unix)
+ *   - packages/core/src/foo.ts, apps/web/src/bar.ts (monorepo prefixes)
+ *   - test/foo.test.ts, tests/foo.test.ts, dist/foo.js, build/foo.js
+ *   - src\\foo.ts (Windows backslash paths)
+ *   - at Object.<anonymous> (src/foo.ts:42:5) (stack trace format)
+ *   - Uppercase extensions: .TS, .TSX, .JS, .JSX
+ *
+ * Results are deduplicated.
  */
 export function extractFilePaths(lines: string[]): string[] {
-  const pathRegex = /(?:\.\/|src\/|lib\/)[\w/.-]+\.[a-z]+(?::\d+)?/gi;
+  // Prefix: ./ or any known directory (with optional subdirectory path)
+  const prefixGroup =
+    '(?:\\./|(?:packages|apps|test|tests|dist|build|src|lib)/(?:[\\w.-]+/)*)';
+
+  // Unix path pattern: prefix followed by a filename with a recognized extension
+  const unixPathRegex = new RegExp(
+    `${prefixGroup}[\\w.-]+\\.(?:tsx?|jsx?|mjs|cjs|json|css|scss|html|vue|svelte|py|rb|go|java|rs|sh)(?::\\d+(?::\\d+)?)?`,
+    'gi'
+  );
+
+  // Windows backslash path pattern: src\\ or similar with backslashes
+  const windowsPathRegex =
+    /(?:src|lib|packages|apps|test|tests|dist|build)\\[\w\\.-]+\.(?:tsx?|jsx?|mjs|cjs|json|css|scss|html)(?::\d+(?::\d+)?)?/gi;
+
+  // Stack trace pattern: "at ... (filepath:line:col)" or "at filepath:line:col"
+  const stackTraceRegex =
+    /\bat\s+(?:[\w.<>[\] ]+\s+)?\(?((?:\.\/|(?:packages|apps|test|tests|dist|build|src|lib)\/)[^):]+\.(?:tsx?|jsx?|mjs|cjs))(?::\d+){0,2}\)?/gi;
+
   const paths = new Set<string>();
+
   for (const line of lines) {
-    const matches = line.match(pathRegex);
-    if (matches) {
-      for (const m of matches) {
+    // Unix paths
+    const unixMatches = line.match(unixPathRegex);
+    if (unixMatches) {
+      for (const m of unixMatches) {
         paths.add(m);
       }
     }
+
+    // Windows paths
+    const winMatches = line.match(windowsPathRegex);
+    if (winMatches) {
+      for (const m of winMatches) {
+        paths.add(m);
+      }
+    }
+
+    // Stack trace paths — extract the capture group (just the file path)
+    let stMatch: RegExpExecArray | null;
+    const stackRe = new RegExp(stackTraceRegex.source, 'gi');
+    while ((stMatch = stackRe.exec(line)) !== null) {
+      if (stMatch[1]) {
+        paths.add(stMatch[1]);
+      }
+    }
   }
+
   return Array.from(paths);
 }
 

@@ -105,15 +105,20 @@ export function buildPrompt(options: PromptOptions): string {
   parts.push('```');
   parts.push('');
 
-  // Source context (optional)
+  // Source context (optional) - iterate up to 5 file paths
   if (includeContext && error.filePaths.length > 0) {
-    const fileCtx = readFileContext(error.filePaths[0]);
-    if (fileCtx) {
-      parts.push('### Source Context');
-      parts.push(`\`\`\`${fileCtx.extension}`);
-      parts.push(fileCtx.content);
-      parts.push('```');
-      parts.push('');
+    const pathsToRead = error.filePaths.slice(0, 5);
+    for (const filePath of pathsToRead) {
+      const fileCtx = readFileContext(filePath);
+      if (fileCtx) {
+        parts.push('### Source Context');
+        parts.push(`**File:** \`${fileCtx.filePath}\``);
+        parts.push(`\`\`\`${fileCtx.extension}`);
+        parts.push(fileCtx.content);
+        parts.push('```');
+        parts.push('');
+      }
+      // Files that don't exist locally are gracefully skipped (readFileContext returns null)
     }
   }
 
