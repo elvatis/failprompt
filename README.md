@@ -74,6 +74,12 @@ failprompt --pipeline 98765
 # Different repo
 failprompt --repo owner/repo
 
+# Specific branch (no silent fallback to "main")
+failprompt --branch feat/my-feature
+
+# Output structured JSON instead of a markdown prompt
+failprompt --json
+
 # Write prompt to file instead of stdout
 failprompt --output prompt.md
 
@@ -101,6 +107,8 @@ failprompt | clip
 | `--pipeline <id>` | `-p` | Specific GitLab CI pipeline ID |
 | `--provider <type>` | `-P` | CI provider: `github`, `gitlab`, `auto` (default: auto) |
 | `--repo <owner/repo>` | `-R` | Repository (default: git remote origin) |
+| `--branch <name>` | `-b` | Branch to look up failed runs on. No silent fallback: if the branch has no failed runs, a clear error is shown |
+| `--json` | | Output structured JSON (repo, branch, runId, provider, stepName, errors, filePaths, sourceContext) instead of a markdown prompt |
 | `--output <file>` | `-o` | Write prompt to file |
 | `--no-context` | | Skip git source context extraction |
 | `--verbose` | `-v` | Print debug info to stderr |

@@ -45,25 +45,34 @@ function assertGhAvailable(): void {
 }
 
 /**
- * Auto-detects the latest failed run ID on the current branch.
+ * Auto-detects the latest failed run ID on the given branch (or current git branch).
+ * Throws a clear error if no branch can be determined and none is provided.
  */
-function detectLatestFailedRunId(repo?: string): string {
+function detectLatestFailedRunId(repo?: string, branch?: string): string {
   const repoFlag = repo ? `--repo ${repo}` : '';
-  let branch: string;
-  try {
-    branch = execSync('git branch --show-current', { stdio: 'pipe' })
-      .toString()
-      .trim();
-  } catch {
-    branch = 'main';
+  let resolvedBranch: string;
+
+  if (branch) {
+    resolvedBranch = branch;
+  } else {
+    try {
+      resolvedBranch = execSync('git branch --show-current', { stdio: 'pipe' })
+        .toString()
+        .trim();
+      if (!resolvedBranch) {
+        throw new Error('git branch --show-current returned an empty branch name');
+      }
+    } catch {
+      resolvedBranch = 'main';
+    }
   }
 
-  const cmd = `gh run list --branch "${branch}" --status failure --limit 1 --json databaseId --jq '.[0].databaseId' ${repoFlag}`.trim();
+  const cmd = `gh run list --branch "${resolvedBranch}" --status failure --limit 1 --json databaseId --jq '.[0].databaseId' ${repoFlag}`.trim();
 
   try {
     const result = execSync(cmd, { stdio: 'pipe' }).toString().trim();
     if (!result || result === 'null') {
-      throw new Error(`No failed runs found on branch "${branch}".`);
+      throw new Error(`No failed runs found on branch "${resolvedBranch}".`);
     }
     return result;
   } catch (err: unknown) {
@@ -77,12 +86,14 @@ function detectLatestFailedRunId(repo?: string): string {
  *
  * @param runId  - Optional specific run ID. If omitted, auto-detects latest failed run.
  * @param repo   - Optional repo in "owner/repo" format. Defaults to origin.
+ * @param branch - Optional branch name. If omitted, uses current git branch.
+ *                 When specified, used only during auto-detection of the run ID.
  * @returns Raw log string from `gh run view --log-failed`
  */
-export function fetchFailedLog(runId?: string, repo?: string): string {
+export function fetchFailedLog(runId?: string, repo?: string, branch?: string): string {
   assertGhAvailable();
 
-  const resolvedRunId = runId ?? detectLatestFailedRunId(repo);
+  const resolvedRunId = runId ?? detectLatestFailedRunId(repo, branch);
   const repoFlag = repo ? `--repo ${repo}` : '';
 
   const cmd = `gh run view ${resolvedRunId} --log-failed ${repoFlag}`.trim();
