@@ -34,7 +34,7 @@
     "url": "https://github.com/elvatis/failprompt.git"
   },
   "dependencies": {
-    "commander": "^12.0.0"
+    "commander": "^14.0.3"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
